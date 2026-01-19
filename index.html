@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bitácora Pro - Entrenamiento</title>
+  <style>
+    :root { --r: 14px; --pad: 12px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; background:#0b0b0f; color:#f2f2f7; }
+    header { position: sticky; top:0; background:#11111a; padding: 12px; border-bottom: 1px solid #22223a; z-index: 10; }
+    h1 { font-size: 16px; margin:0 0 6px; }
+    .sub { font-size: 12px; opacity:.85; }
+    main { padding: 12px; max-width: 1200px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 900px){ .grid { grid-template-columns: 1.1fr .9fr; } }
+    .card { background:#121225; border:1px solid #232344; border-radius: var(--r); padding: var(--pad); box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+    label { display:block; font-size: 12px; opacity:.9; margin-bottom: 6px; }
+    input, select, textarea, button { width: 100%; box-sizing: border-box; border-radius: 12px; border: 1px solid #2a2a55; background:#0f0f20; color:#f2f2f7; padding: 10px; font-size: 14px; }
+    textarea { min-height: 72px; resize: vertical; }
+    .row { display:grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 520px){ .row { grid-template-columns: 1fr 1fr; } }
+    .row3 { display:grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 740px){ .row3 { grid-template-columns: 1fr 1fr 1fr; } }
+    .row4 { display:grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 740px){ .row4 { grid-template-columns: 1fr 1fr 1fr 1fr; } }
+    .btnrow { display:flex; gap:10px; flex-wrap: wrap; }
+    button { cursor:pointer; }
+    .primary { background:#1a1a3a; border-color:#3a3aa0; }
+    .good { background:#0f2a1a; border-color:#2b6b3a; }
+    .warn { background:#2a1a0f; border-color:#7a4a1f; }
+    .danger{ background:#2a0f16; border-color:#7a1f3a; }
+    .info { background:#0f1a2a; border-color:#1f4a7a; }
+    .muted { opacity:.85; font-size: 12px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #24244a; padding: 8px; text-align:left; font-size: 13px; vertical-align: top; }
+    th { font-size: 12px; opacity:.9; }
+    .pill { display:inline-block; padding: 2px 8px; border:1px solid #2a2a55; border-radius: 999px; font-size: 12px; opacity:.9; margin-right:6px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .sep { height:1px; background:#232344; margin: 10px 0; }
+    .small { font-size: 12px; opacity:.85; }
+    .metric-box { background:#0f1020; border:1px solid #2a2a55; border-radius: 8px; padding: 8px; margin: 5px 0; }
+    .metric-label { font-size: 11px; opacity:.7; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 18px; font-weight: 600; margin-top: 4px; }
+    .highlight { color: #4a9eff; }
+    .warning { color: #ff9a4a; }
+    .success { color: #4aff9a; }
+    .chart-container { background:#0f1020; border:1px solid #2a2a55; border-radius: 8px; padding: 12px; margin: 10px 0; height: 200px; position: relative; }
+    .chart-bar { background: linear-gradient(180deg, #4a9eff 0%, #2a5aaf 100%); border-radius: 4px; position: absolute; bottom: 30px; width: 40px; transition: all 0.3s ease; }
+    .chart-bar:hover { background: linear-gradient(180deg, #6abfff 0%, #4a7acf 100%); }
+    .chart-label { position: absolute; bottom: 5px; font-size: 10px; opacity: 0.7; text-align: center; width: 40px; }
+    .chart-value { position: absolute; top: -20px; font-size: 10px; font-weight: 600; color: #4a9eff; text-align: center; width: 40px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+    .badge-new { background: #1a3a1a; color: #4aff9a; border: 1px solid #2a6a3a; }
+    .badge-improved { background: #1a2a3a; color: #4a9eff; border: 1px solid #2a4a7a; }
+    input[readonly] { background: #0a0a15; opacity: 0.7; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Bitácora Pro - Entrenamiento <span class="badge badge-new">MEJORADA</span></h1>
+  <div class="sub">Offline • Con análisis biomecánico • Volumen total • Progresión automática</div>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- Captura -->
+    <section class="card">
+      <div class="row">
+        <div>
+          <label>Alumno</label>
+          <input id="student" list="studentsList" placeholder="Ej. Juan Pérez" />
+          <datalist id="studentsList"></datalist>
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input id="date" type="date" />
+        </div>
+      </div>
+
+      <!-- Fase del entrenamiento -->
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Fase / Objetivo <span class="badge-new">NUEVO</span></label>
+          <select id="phase">
+            <option value="">-- Seleccionar --</option>
+            <option value="hipertrofia">Hipertrofia</option>
+            <option value="fuerza">Fuerza Máxima</option>
+            <option value="potencia">Potencia</option>
+            <option value="resistencia">Resistencia Muscular</option>
+            <option value="tecnica">Técnica / Aprendizaje</option>
+            <option value="deload">Deload / Descarga</option>
+          </select>
+        </div>
+        <div>
+          <label>Semana del Bloque <span class="badge-new">NUEVO</span></label>
+          <input id="weekBlock" type="number" min="1" max="12" step="1" placeholder="Ej. 3" />
+        </div>
+      </div>
+
+      <div class="row3" style="margin-top:10px;">
+        <div>
+          <label>Cómo se sintió (1–10)</label>
+          <input id="feel" type="number" min="1" max="10" step="1" placeholder="7" />
+        </div>
+        <div>
+          <label>Energía (1–10)</label>
+          <input id="energy" type="number" min="1" max="10" step="1" placeholder="8" />
+        </div>
+        <div>
+          <label>Molestia/Dolor (0–10)</label>
+          <input id="pain" type="number" min="0" max="10" step="1" placeholder="0" />
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <h2 style="font-size:14px;margin:0 0 10px;">Ejercicios del día</h2>
+
+      <div class="row">
+        <div>
+          <label>Ejercicio</label>
+          <input id="exName" placeholder="Ej. Press banca / Sentadilla" />
+        </div>
+        <div>
+          <label>Músculos</label>
+          <input id="muscles" placeholder="Ej. Pecho, tríceps, deltoide" />
+        </div>
+      </div>
+
+      <div class="row4" style="margin-top:10px;">
+        <div>
+          <label>Series</label>
+          <input id="sets" type="number" min="0" step="1" placeholder="4" />
+        </div>
+        <div>
+          <label>Reps</label>
+          <input id="reps" type="text" placeholder="8-10" />
+        </div>
+        <div>
+          <label>Peso (kg)</label>
+          <input id="weight" type="number" min="0" step="0.5" placeholder="60" />
+        </div>
+        <div>
+          <label>Tempo <span class="badge-new">NUEVO</span></label>
+          <input id="tempo" type="text" placeholder="3010" maxlength="4" />
+        </div>
+      </div>
+
+      <!-- Calculadoras automáticas -->
+      <div class="row3" style="margin-top:10px;">
+        <div class="metric-box">
+          <div class="metric-label">Volumen Total</div>
+          <div class="metric-value highlight" id="volumeCalc">0 kg</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">1RM Estimado</div>
+          <div class="metric-value success" id="oneRMCalc">0 kg</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">% 1RM (si conoces tu max)</div>
+          <input id="knownMax" type="number" min="0" step="0.5" placeholder="Ej. 100kg" style="margin-top:4px; padding:6px; font-size:12px;" />
+          <div class="metric-value warning" id="percentMax" style="font-size:14px; margin-top:4px;">-- %</div>
+        </div>
+      </div>
+
+      <div class="row4" style="margin-top:10px;">
+        <div>
+          <label>RPE (1-10)</label>
+          <input id="rpe" type="number" min="1" max="10" step="1" placeholder="8" />
+        </div>
+        <div>
+          <label>¿Completó?</label>
+          <select id="done">
+            <option value="si">Sí</option>
+            <option value="parcial">Parcial</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div>
+          <label>Descanso (seg)</label>
+          <input id="rest" type="number" min="0" step="5" placeholder="90" />
+        </div>
+        <div>
+          <label>ROM <span class="badge-new">NUEVO</span></label>
+          <select id="rom">
+            <option value="completo">Completo</option>
+            <option value="parcial">Parcial</option>
+            <option value="limitado">Limitado</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Notas técnicas (biomecánica, cues, compensaciones)</label>
+        <textarea id="exNotes" placeholder="Ej. Rodilla colapsa en excéntrica; abrir puntas 10°; mantener caja torácica abajo; tempo 3-0-1-0 perfecto"></textarea>
+      </div>
+
+      <div class="btnrow" style="margin-top:10px;">
+        <button class="primary" id="addExercise">+ Agregar ejercicio</button>
+        <button class="warn" id="clearExercise">Limpiar campos</button>
+      </div>
+
+      <div class="sep"></div>
+
+      <div>
+        <label>Resumen / Observaciones de la sesión</label>
+        <textarea id="sessionNotes" placeholder="Qué salió bien, qué ajustar, qué sigue la próxima sesión, cambios en la técnica observados"></textarea>
+      </div>
+
+      <!-- Métricas de sesión -->
+      <div class="row3" style="margin-top:10px;">
+        <div class="metric-box">
+          <div class="metric-label">Volumen Total Sesión</div>
+          <div class="metric-value highlight" id="totalSessionVolume">0 kg</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Ejercicios Agregados</div>
+          <div class="metric-value" id="totalExercises">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Series Totales</div>
+          <div class="metric-value" id="totalSets">0</div>
+        </div>
+      </div>
+
+      <div class="btnrow" style="margin-top:10px;">
+        <button class="good" id="saveSession">💾 Guardar sesión</button>
+        <button class="danger" id="deleteSession">🗑️ Eliminar sesión</button>
+      </div>
+
+      <div class="muted" id="status" style="margin-top:10px;"></div>
+    </section>
+
+    <!-- Historial / búsqueda / análisis -->
+    <aside class="card">
+      <div class="row">
+        <div>
+          <label>Buscar alumno</label>
+          <input id="searchStudent" placeholder="Ej. Juan" />
+        </div>
+        <div>
+          <label>Buscar ejercicio</label>
+          <input id="searchText" placeholder="Ej. sentadilla / press" />
+        </div>
+      </div>
+
+      <div class="btnrow" style="margin-top:10px;">
+        <button class="primary" id="loadLast">📋 Última sesión</button>
+        <button class="info" id="showProgress">📊 Ver progresión</button>
+        <button id="exportBtn">💾 Exportar</button>
+      </div>
+      <input id="importFile" type="file" accept="application/json" style="display:none;" />
+
+      <div class="sep"></div>
+
+      <!-- Gráfica de progresión -->
+      <div id="progressSection" style="display:none;">
+        <h2 style="font-size:14px;margin:0 0 10px;">Progresión: <span id="progressExercise"></span></h2>
+        <div class="chart-container" id="progressChart"></div>
+        <div class="small" style="margin-top:10px;">
+          <span class="pill">📈</span> Las últimas 8 sesiones del ejercicio seleccionado
+        </div>
+        <button id="closeProgress" style="margin-top:10px;">Cerrar gráfica</button>
+        <div class="sep"></div>
+      </div>
+
+      <div class="small">
+        <span class="pill">💡 Tip</span> Ahora con <b>volumen automático</b>, <b>1RM estimado</b> y <b>gráficas de progresión</b>
+      </div>
+
+      <div class="sep"></div>
+
+      <h2 style="font-size:14px;margin:0 0 10px;">Ejercicios agregados (pre-guardado)</h2>
+      <div id="draft"></div>
+
+      <div class="sep"></div>
+
+      <h2 style="font-size:14px;margin:0 0 10px;">Historial de sesiones</h2>
+      <div style="overflow:auto; max-height: 45vh;">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>Fecha</th>
+              <th>Fase</th>
+              <th>Resumen</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+  // ---- Storage helpers ----
+  const KEY = "bitacora_pro_v2";
+  const getDB = () => JSON.parse(localStorage.getItem(KEY) || '{"sessions":[]}');
+  const setDB = (db) => localStorage.setItem(KEY, JSON.stringify(db));
+
+  // Draft exercise list for current session (not yet saved)
+  let draftExercises = [];
+
+  // ---- UI elements ----
+  const el = (id) => document.getElementById(id);
+  const student = el("student");
+  const date = el("date");
+  const phase = el("phase");
+  const weekBlock = el("weekBlock");
+  const feel = el("feel");
+  const energy = el("energy");
+  const pain = el("pain");
+  const exName = el("exName");
+  const muscles = el("muscles");
+  const sets = el("sets");
+  const reps = el("reps");
+  const weight = el("weight");
+  const tempo = el("tempo");
+  const rpe = el("rpe");
+  const done = el("done");
+  const rest = el("rest");
+  const rom = el("rom");
+  const exNotes = el("exNotes");
+  const sessionNotes = el("sessionNotes");
+  const searchStudent = el("searchStudent");
+  const searchText = el("searchText");
+  const draft = el("draft");
+  const historyBody = el("historyTable").querySelector("tbody");
+  const knownMax = el("knownMax");
+
+  // Set today's date
+  date.valueAsDate = new Date();
+
+  // ---- Auto-calculations ----
+  function calculateVolume() {
+    const s = parseFloat(sets.value) || 0;
+    const r = parseFloat(reps.value) || 0;
+    const w = parseFloat(weight.value) || 0;
+    return s * r * w;
+  }
+
+  function calculate1RM() {
+    const w = parseFloat(weight.value) || 0;
+    const r = parseFloat(reps.value) || 1;
+    if (r >= 12) return w * (1 + r / 30); // Fórmula Epley modificada para altas reps
+    return w * (1 + r / 30); // Fórmula Epley estándar
+  }
+
+  function updateCalculations() {
+    const vol = calculateVolume();
+    const oneRM = calculate1RM();
+    el("volumeCalc").textContent = vol.toFixed(1) + " kg";
+    el("oneRMCalc").textContent = oneRM.toFixed(1) + " kg";
+    
+    const max = parseFloat(knownMax.value) || 0;
+    if (max > 0 && weight.value) {
+      const percent = ((parseFloat(weight.value) / max) * 100).toFixed(1);
+      el("percentMax").textContent = percent + " %";
+    } else {
+      el("percentMax").textContent = "-- %";
+    }
+    
+    updateSessionMetrics();
+  }
+
+  function updateSessionMetrics() {
+    let totalVol = 0;
+    let totalSetsCount = 0;
+    
+    draftExercises.forEach(ex => {
+      if (ex.volume) totalVol += ex.volume;
+      if (ex.sets) totalSetsCount += ex.sets;
+    });
+    
+    el("totalSessionVolume").textContent = totalVol.toFixed(1) + " kg";
+    el("totalExercises").textContent = draftExercises.length;
+    el("totalSets").textContent = totalSetsCount;
+  }
+
+  sets.addEventListener("input", updateCalculations);
+  reps.addEventListener("input", updateCalculations);
+  weight.addEventListener("input", updateCalculations);
+  knownMax.addEventListener("input", updateCalculations);
+
+  // ---- Helpers ----
+  const normalize = (s) => String(s || "").trim();
+  const keyForSession = (student, date) => `${normalize(student).toLowerCase()}::${date}`;
+
+  function toast(msg){
+    el("status").textContent = msg;
+    setTimeout(() => el("status").textContent = "", 4000);
+  }
+
+  function renderDraft(){
+    if (draftExercises.length === 0) {
+      draft.innerHTML = `<div class="muted">Ningún ejercicio agregado aún.</div>`;
+      updateSessionMetrics();
+      return;
+    }
+    let html = `<table style="font-size:12px;">
+      <thead><tr>
+        <th>Ejercicio</th>
+        <th>Series</th>
+        <th>Reps</th>
+        <th>Peso</th>
+        <th>Tempo</th>
+        <th>Volumen</th>
+        <th>1RM Est.</th>
+        <th>RPE</th>
+        <th></th>
+      </tr></thead><tbody>`;
+    draftExercises.forEach((x, idx) => {
+      html += `<tr>
+        <td><b>${escapeHtml(x.name)}</b><br/><small style="opacity:.7">${escapeHtml(x.muscles||"")}</small></td>
+        <td>${x.sets ?? ""}</td>
+        <td>${escapeHtml(x.reps||"")}</td>
+        <td>${x.weight ?? ""} kg</td>
+        <td>${escapeHtml(x.tempo||"")}</td>
+        <td class="highlight"><b>${(x.volume || 0).toFixed(1)} kg</b></td>
+        <td class="success"><b>${(x.oneRM || 0).toFixed(1)} kg</b></td>
+        <td>${x.rpe ?? ""}</td>
+        <td><button onclick="removeDraft(${idx})" style="padding:4px 8px; font-size:11px;">Quitar</button></td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+    draft.innerHTML = html;
+    updateSessionMetrics();
+  }
+
+  window.removeDraft = function(idx){
+    draftExercises.splice(idx,1);
+    renderDraft();
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  function upsertStudentsList(){
+    const db = getDB();
+    const names = [...new Set(db.sessions.map(x => x.student).filter(Boolean))].sort();
+    const dl = el("studentsList");
+    dl.innerHTML = names.map(n => `<option value="${escapeHtml(n)}"></option>`).join("");
+  }
+
+  function renderHistory(){
+    const db = getDB();
+    const sFilter = normalize(searchStudent.value).toLowerCase();
+    const tFilter = normalize(searchText.value).toLowerCase();
+
+    const sessions = db.sessions
+      .slice()
+      .sort((a,b) => (a.date < b.date ? 1 : -1))
+      .filter(x => {
+        const okStudent = !sFilter || (x.student||"").toLowerCase().includes(sFilter);
+        if (!okStudent) return false;
+        if (!tFilter) return true;
+        const blob = JSON.stringify(x).toLowerCase();
+        return blob.includes(tFilter);
+      });
+
+    historyBody.innerHTML = sessions.map(x => {
+      const summary = buildSummary(x);
+      const phaseLabel = x.phase ? `<span class="pill">${escapeHtml(x.phase)}</span>` : "";
+      return `<tr>
+        <td>${escapeHtml(x.student||"")}</td>
+        <td class="mono">${escapeHtml(x.date||"")}</td>
+        <td>${phaseLabel}</td>
+        <td>${escapeHtml(summary)}</td>
+        <td><button onclick="loadSession('${escapeHtml(x.student||"")}', '${escapeHtml(x.date||"")}')" style="padding:4px 8px; font-size:11px;">Abrir</button></td>
+      </tr>`;
+    }).join("");
+
+    upsertStudentsList();
+  }
+
+  function buildSummary(x){
+    const exCount = (x.exercises||[]).length;
+    const totalVol = (x.exercises||[]).reduce((sum, ex) => sum + (ex.volume || 0), 0);
+    const f = x.metrics?.feel ?? "";
+    const p = x.metrics?.pain ?? "";
+    return `${exCount} ej. • ${totalVol.toFixed(0)}kg vol. • ${f}/10 sentir • ${p}/10 dolor`;
+  }
+
+  // ---- Actions ----
+  el("addExercise").addEventListener("click", () => {
+    const s = normalize(student.value);
+    const d = date.value;
+    if (!s) return toast("⚠️ Pon el nombre del alumno.");
+    if (!d) return toast("⚠️ Selecciona fecha.");
+
+    const nm = normalize(exName.value);
+    if (!nm) return toast("⚠️ Pon el nombre del ejercicio.");
+
+    const vol = calculateVolume();
+    const oneRM = calculate1RM();
+
+    draftExercises.push({
+      name: nm,
+      muscles: normalize(muscles.value),
+      sets: sets.value ? Number(sets.value) : null,
+      reps: normalize(reps.value),
+      weight: weight.value ? Number(weight.value) : null,
+      tempo: normalize(tempo.value),
+      rpe: rpe.value ? Number(rpe.value) : null,
+      done: done.value,
+      rest: rest.value ? Number(rest.value) : null,
+      rom: rom.value,
+      notes: normalize(exNotes.value),
+      volume: vol,
+      oneRM: oneRM
+    });
+
+    renderDraft();
+    toast("✅ Ejercicio agregado. Volumen: " + vol.toFixed(1) + " kg");
+    muscles.value = ""; sets.value=""; reps.value=""; weight.value=""; tempo.value=""; rpe.value=""; rest.value=""; exNotes.value=""; done.value="si"; rom.value="completo";
+    updateCalculations();
+  });
+
+  el("clearExercise").addEventListener("click", () => {
+    exName.value=""; muscles.value=""; sets.value=""; reps.value=""; weight.value=""; tempo.value=""; rpe.value=""; rest.value=""; exNotes.value=""; done.value="si"; rom.value="completo";
+    updateCalculations();
+    toast("🧹 Campos limpiados.");
+  });
+
+  el("saveSession").addEventListener("click", () => {
+    const s = normalize(student.value);
+    const d = date.value;
+    if (!s) return toast("⚠️ Pon el nombre del alumno.");
+    if (!d) return toast("⚠️ Selecciona fecha.");
+    if (draftExercises.length === 0) return toast("⚠️ Agrega al menos 1 ejercicio.");
+
+    const db = getDB();
+    const k = keyForSession(s, d);
+    const existingIdx = db.sessions.findIndex(x => keyForSession(x.student, x.date) === k);
+
+    const sessionObj = {
+      student: s,
+      date: d,
+      phase: phase.value,
+      weekBlock: weekBlock.value ? Number(weekBlock.value) : null,
+      metrics: {
+        feel: feel.value ? Number(feel.value) : null,
+        energy: energy.value ? Number(energy.value) : null,
+        pain: pain.value ? Number(pain.value) : null
+      },
+      exercises: draftExercises,
+      notes: normalize(sessionNotes.value),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (existingIdx >= 0) db.sessions[existingIdx] = sessionObj;
+    else db.sessions.push(sessionObj);
+
+    setDB(db);
+    draftExercises = [];
+    renderDraft();
+    renderHistory();
+    toast("💾 Sesión guardada exitosamente ✅");
+  });
+
+  el("deleteSession").addEventListener("click", () => {
+    const s = normalize(student.value);
+    const d = date.value;
+    if (!s || !d) return toast("⚠️ Selecciona alumno y fecha.");
+    const db = getDB();
+    const k = keyForSession(s, d);
+    const before = db.sessions.length;
+    db.sessions = db.sessions.filter(x => keyForSession(x.student, x.date) !== k);
+    setDB(db);
+    if (db.sessions.length < before) toast("🗑️ Sesión eliminada.");
+    else toast("⚠️ No encontré esa sesión.");
+    renderHistory();
+  });
+
+  window.loadSession = function(s, d){
+    const db = getDB();
+    const k = keyForSession(s, d);
+    const x = db.sessions.find(z => keyForSession(z.student, z.date) === k);
+    if (!x) return toast("⚠️ No se encontró esa sesión.");
+
+    student.value = x.student || "";
+    date.value = x.date || "";
+    phase.value = x.phase || "";
+    weekBlock.value = x.weekBlock || "";
+    feel.value = x.metrics?.feel ?? "";
+    energy.value = x.metrics?.energy ?? "";
+    pain.value = x.metrics?.pain ?? "";
+    sessionNotes.value = x.notes || "";
+    draftExercises = (x.exercises || []).slice();
+    renderDraft();
+    toast("📋 Sesión cargada. Puedes editarla.");
+  }
+
+  el("loadLast").addEventListener("click", () => {
+    const s = normalize(student.value || searchStudent.value);
+    if (!s) return toast("⚠️ Escribe el alumno.");
+    const db = getDB();
+    const list = db.sessions
+      .filter(x => normalize(x.student).toLowerCase() === s.toLowerCase())
+      .sort((a,b) => (a.date < b.date ? 1 : -1));
+    if (list.length === 0) return toast("⚠️ No hay sesiones para ese alumno.");
+    loadSession(list[0].student, list[0].date);
+  });
+
+  // ---- Gráfica de progresión ----
+  el("showProgress").addEventListener("click", () => {
+    const s = normalize(searchStudent.value || student.value);
+    const ex = normalize(searchText.value || exName.value);
+    if (!s || !ex) return toast("⚠️ Especifica alumno y ejercicio para ver progresión.");
+    
+    const db = getDB();
+    const sessions = db.sessions
+      .filter(x => normalize(x.student).toLowerCase() === s.toLowerCase())
+      .sort((a,b) => (a.date > b.date ? 1 : -1)); // Orden cronológico
+    
+    const exerciseData = [];
+    sessions.forEach(session => {
+      const exercises = session.exercises || [];
+      exercises.forEach(e => {
+        if (normalize(e.name).toLowerCase().includes(ex.toLowerCase())) {
+          exerciseData.push({
+            date: session.date,
+            weight: e.weight || 0,
+            volume: e.volume || 0,
+            oneRM: e.oneRM || 0
+          });
+        }
+      });
+    });
+    
+    if (exerciseData.length === 0) return toast("⚠️ No hay datos de ese ejercicio.");
+    
+    // Tomar últimas 8 sesiones
+    const recentData = exerciseData.slice(-8);
+    
+    el("progressExercise").textContent = ex;
+    renderProgressChart(recentData);
+    el("progressSection").style.display = "block";
+    toast("📊 Mostrando progresión de " + ex);
+  });
+
+  function renderProgressChart(data) {
+    const container = el("progressChart");
+    container.innerHTML = "";
+    
+    if (data.length === 0) return;
+    
+    const maxWeight = Math.max(...data.map(d => d.weight));
+    const spacing = 60;
+    
+    data.forEach((d, i) => {
+      const height = (d.weight / maxWeight) * 150;
+      const left = 10 + (i * spacing);
+      
+      const bar = document.createElement("div");
+      bar.className = "chart-bar";
+      bar.style.left = left + "px";
+      bar.style.height = height + "px";
+      
+      const value = document.createElement("div");
+      value.className = "chart-value";
+      value.textContent = d.weight + "kg";
+      value.style.left = left + "px";
+      
+      const label = document.createElement("div");
+      label.className = "chart-label";
+      label.textContent = d.date.split("-")[2] + "/" + d.date.split("-")[1];
+      label.style.left = left + "px";
+      
+      container.appendChild(bar);
+      container.appendChild(value);
+      container.appendChild(label);
+    });
+  }
+
+  el("closeProgress").addEventListener("click", () => {
+    el("progressSection").style.display = "none";
+  });
+
+  // Export / Import
+  el("exportBtn").addEventListener("click", () => {
+    const db = getDB();
+    const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bitacora_pro_export_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast("💾 Exportado JSON ✅");
+  });
+
+  el("importBtn").addEventListener("click", () => el("importFile").click());
+  el("importFile").addEventListener("change", async (ev) => {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    try{
+      const text = await file.text();
+      const incoming = JSON.parse(text);
+      if (!incoming.sessions || !Array.isArray(incoming.sessions)) throw new Error("Formato inválido.");
+      setDB(incoming);
+      draftExercises = [];
+      renderDraft();
+      renderHistory();
+      toast("📥 Importado ✅");
+    } catch(e){
+      toast("⚠️ Error importando: " + e.message);
+    } finally {
+      ev.target.value = "";
+    }
+  });
+
+  // Live search rerender
+  searchStudent.addEventListener("input", renderHistory);
+  searchText.addEventListener("input", renderHistory);
+
+  // Initial render
+  renderDraft();
+  renderHistory();
+  updateCalculations();
+</script>
+</body>
+</html>
