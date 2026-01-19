@@ -247,7 +247,12 @@
       <div class="btnrow" style="margin-top:10px;">
         <button class="primary" id="loadLast">📋 Última sesión</button>
         <button class="info" id="showProgress">📊 Ver progresión</button>
-        <button id="exportBtn">💾 Exportar</button>
+        <button class="danger" id="deleteStudent">🗑️ Borrar alumno</button>
+      </div>
+      
+      <div class="btnrow" style="margin-top:10px;">
+        <button id="exportBtn">💾 Exportar JSON</button>
+        <button id="importBtn">📥 Importar JSON</button>
       </div>
       <input id="importFile" type="file" accept="application/json" style="display:none;" />
 
@@ -266,6 +271,13 @@
 
       <div class="small">
         <span class="pill">💡 Tip</span> Ahora con <b>volumen automático</b>, <b>1RM estimado</b> y <b>gráficas de progresión</b>
+      </div>
+      
+      <div class="metric-box" style="margin-top:10px;">
+        <div class="metric-label">Base de datos</div>
+        <div style="font-size:13px; margin-top:6px;" id="dbStats">
+          <span id="studentCount">0</span> alumnos • <span id="sessionCount">0</span> sesiones
+        </div>
       </div>
 
       <div class="sep"></div>
@@ -475,6 +487,11 @@
       </tr>`;
     }).join("");
 
+    // Actualizar estadísticas
+    const uniqueStudents = [...new Set(db.sessions.map(x => x.student).filter(Boolean))];
+    el("studentCount").textContent = uniqueStudents.length;
+    el("sessionCount").textContent = db.sessions.length;
+
     upsertStudentsList();
   }
 
@@ -607,6 +624,56 @@
     loadSession(list[0].student, list[0].date);
   });
 
+  // ---- Borrar alumno completo ----
+  el("deleteStudent").addEventListener("click", () => {
+    const s = normalize(student.value || searchStudent.value);
+    if (!s) return toast("⚠️ Escribe el nombre del alumno a borrar.");
+    
+    const db = getDB();
+    const studentSessions = db.sessions.filter(x => 
+      normalize(x.student).toLowerCase() === s.toLowerCase()
+    );
+    
+    if (studentSessions.length === 0) {
+      return toast("⚠️ No hay sesiones para ese alumno.");
+    }
+    
+    const confirmMsg = `¿BORRAR TODOS LOS DATOS de "${s}"?\n\n` +
+                       `Se eliminarán ${studentSessions.length} sesiones.\n` +
+                       `Esta acción NO se puede deshacer.\n\n` +
+                       `Escribe "BORRAR" para confirmar.`;
+    
+    const confirmation = prompt(confirmMsg);
+    
+    if (confirmation !== "BORRAR") {
+      return toast("❌ Operación cancelada.");
+    }
+    
+    db.sessions = db.sessions.filter(x => 
+      normalize(x.student).toLowerCase() !== s.toLowerCase()
+    );
+    
+    setDB(db);
+    
+    // Limpiar formulario si estaba cargado ese alumno
+    if (normalize(student.value).toLowerCase() === s.toLowerCase()) {
+      student.value = "";
+      date.valueAsDate = new Date();
+      phase.value = "";
+      weekBlock.value = "";
+      feel.value = "";
+      energy.value = "";
+      pain.value = "";
+      sessionNotes.value = "";
+      draftExercises = [];
+      renderDraft();
+    }
+    
+    searchStudent.value = "";
+    renderHistory();
+    toast(`🗑️ Alumno "${s}" eliminado completamente (${studentSessions.length} sesiones).`);
+  });
+
   // ---- Gráfica de progresión ----
   el("showProgress").addEventListener("click", () => {
     const s = normalize(searchStudent.value || student.value);
@@ -720,6 +787,30 @@
   // Live search rerender
   searchStudent.addEventListener("input", renderHistory);
   searchText.addEventListener("input", renderHistory);
+
+  // Auto-cargar al seleccionar alumno del datalist
+  student.addEventListener("change", () => {
+    const s = normalize(student.value);
+    if (s && s.length > 0) {
+      searchStudent.value = s;
+      renderHistory();
+    }
+  });
+
+  // Auto-buscar cuando escribes en búsqueda de alumno
+  searchStudent.addEventListener("input", () => {
+    const s = normalize(searchStudent.value);
+    if (s && s.length > 2) {
+      // Auto-llenar campo de alumno si hay coincidencia exacta
+      const db = getDB();
+      const exactMatch = db.sessions.find(x => 
+        normalize(x.student).toLowerCase() === s.toLowerCase()
+      );
+      if (exactMatch && student.value !== exactMatch.student) {
+        // No auto-llenar para no interrumpir la escritura
+      }
+    }
+  });
 
   // Initial render
   renderDraft();
