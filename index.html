@@ -53,6 +53,17 @@
     .badge-new { background: #1a3a1a; color: #4aff9a; border: 1px solid #2a6a3a; }
     .badge-improved { background: #1a2a3a; color: #4a9eff; border: 1px solid #2a4a7a; }
     input[readonly] { background: #0a0a15; opacity: 0.7; }
+    
+    /* Modal de confirmación */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #121225; border: 2px solid #ff4a4a; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    .modal-title { font-size: 18px; font-weight: 700; color: #ff4a4a; margin-bottom: 16px; }
+    .modal-body { font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+    .modal-warning { background: #2a0f16; border: 1px solid #7a1f3a; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 13px; }
+    .modal-input { width: 100%; padding: 12px; background: #0f0f20; border: 2px solid #2a2a55; border-radius: 8px; color: #f2f2f7; font-size: 16px; margin: 12px 0; text-align: center; font-weight: 600; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-buttons button { flex: 1; padding: 12px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -305,6 +316,27 @@
     </aside>
   </div>
 </main>
+
+<!-- Modal de confirmación para borrar alumno -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ BORRAR ALUMNO COMPLETO</div>
+    <div class="modal-body">
+      <p>Estás a punto de eliminar <strong>TODOS</strong> los datos de:</p>
+      <div class="modal-warning">
+        <strong id="modalStudentName"></strong><br>
+        <span id="modalSessionCount"></span> sesiones serán eliminadas
+      </div>
+      <p><strong style="color:#ff4a4a;">Esta acción NO se puede deshacer.</strong></p>
+      <p>Para confirmar, escribe <strong>BORRAR</strong> en mayúsculas:</p>
+      <input type="text" class="modal-input" id="deleteConfirmInput" placeholder="Escribe BORRAR" autocomplete="off" />
+    </div>
+    <div class="modal-buttons">
+      <button class="danger" id="confirmDelete">🗑️ Confirmar borrado</button>
+      <button id="cancelDelete">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // ---- Storage helpers ----
@@ -625,6 +657,9 @@
   });
 
   // ---- Borrar alumno completo ----
+  let studentToDelete = null;
+  let sessionsToDelete = 0;
+
   el("deleteStudent").addEventListener("click", () => {
     const s = normalize(student.value || searchStudent.value);
     if (!s) return toast("⚠️ Escribe el nombre del alumno a borrar.");
@@ -638,25 +673,37 @@
       return toast("⚠️ No hay sesiones para ese alumno.");
     }
     
-    const confirmMsg = `¿BORRAR TODOS LOS DATOS de "${s}"?\n\n` +
-                       `Se eliminarán ${studentSessions.length} sesiones.\n` +
-                       `Esta acción NO se puede deshacer.\n\n` +
-                       `Escribe "BORRAR" para confirmar.`;
+    // Guardar datos para el modal
+    studentToDelete = s;
+    sessionsToDelete = studentSessions.length;
     
-    const confirmation = prompt(confirmMsg);
+    // Mostrar modal
+    el("modalStudentName").textContent = s;
+    el("modalSessionCount").textContent = sessionsToDelete;
+    el("deleteConfirmInput").value = "";
+    el("deleteModal").classList.add("active");
+    
+    // Enfocar el input
+    setTimeout(() => el("deleteConfirmInput").focus(), 100);
+  });
+
+  el("confirmDelete").addEventListener("click", () => {
+    const confirmation = el("deleteConfirmInput").value;
     
     if (confirmation !== "BORRAR") {
-      return toast("❌ Operación cancelada.");
+      toast("❌ Debes escribir BORRAR en mayúsculas para confirmar.");
+      return;
     }
     
+    const db = getDB();
     db.sessions = db.sessions.filter(x => 
-      normalize(x.student).toLowerCase() !== s.toLowerCase()
+      normalize(x.student).toLowerCase() !== studentToDelete.toLowerCase()
     );
     
     setDB(db);
     
     // Limpiar formulario si estaba cargado ese alumno
-    if (normalize(student.value).toLowerCase() === s.toLowerCase()) {
+    if (normalize(student.value).toLowerCase() === studentToDelete.toLowerCase()) {
       student.value = "";
       date.valueAsDate = new Date();
       phase.value = "";
@@ -671,7 +718,34 @@
     
     searchStudent.value = "";
     renderHistory();
-    toast(`🗑️ Alumno "${s}" eliminado completamente (${studentSessions.length} sesiones).`);
+    
+    // Cerrar modal
+    el("deleteModal").classList.remove("active");
+    
+    toast(`🗑️ Alumno "${studentToDelete}" eliminado completamente (${sessionsToDelete} sesiones).`);
+    
+    studentToDelete = null;
+    sessionsToDelete = 0;
+  });
+
+  el("cancelDelete").addEventListener("click", () => {
+    el("deleteModal").classList.remove("active");
+    toast("❌ Operación cancelada.");
+  });
+
+  // Cerrar modal al hacer click fuera
+  el("deleteModal").addEventListener("click", (e) => {
+    if (e.target === el("deleteModal")) {
+      el("deleteModal").classList.remove("active");
+      toast("❌ Operación cancelada.");
+    }
+  });
+
+  // Permitir confirmar con Enter
+  el("deleteConfirmInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      el("confirmDelete").click();
+    }
   });
 
   // ---- Gráfica de progresión ----
