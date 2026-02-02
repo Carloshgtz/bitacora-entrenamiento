@@ -1,3 +1,1580 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bitácora Pro - Gestión de Entrenamiento</title>
+  <style>
+    :root { 
+      --r: 14px; 
+      --pad: 12px; 
+      --primary: #3a3aa0;
+      --primary-bg: #1a1a3a;
+      --success: #2b6b3a;
+      --success-bg: #0f2a1a;
+      --warning: #7a4a1f;
+      --warning-bg: #2a1a0f;
+      --danger: #7a1f3a;
+      --danger-bg: #2a0f16;
+    }
+    * { box-sizing: border-box; }
+    body { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; 
+      margin: 0; 
+      background:#0b0b0f; 
+      color:#f2f2f7; 
+    }
+    
+    /* Header */
+    header { 
+      position: sticky; 
+      top:0; 
+      background:#11111a; 
+      padding: 12px; 
+      border-bottom: 1px solid #22223a; 
+      z-index: 100; 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    h1 { font-size: 18px; margin:0; }
+    .header-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .header-nav button {
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid #2a2a55;
+      background: #0f0f20;
+      color: #f2f2f7;
+      transition: all 0.2s;
+    }
+    .header-nav button:hover { background: #1a1a3a; }
+    .header-nav button.active { 
+      background: var(--primary-bg); 
+      border-color: var(--primary); 
+    }
+    
+    /* Main layout */
+    main { padding: 16px; max-width: 1400px; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Cards */
+    .card { 
+      background:#121225; 
+      border:1px solid #232344; 
+      border-radius: var(--r); 
+      padding: var(--pad); 
+      box-shadow: 0 6px 20px rgba(0,0,0,.25); 
+      margin-bottom: 16px;
+    }
+    .card h2 { 
+      font-size: 16px; 
+      margin: 0 0 12px; 
+      padding-bottom: 8px;
+      border-bottom: 1px solid #232344;
+    }
+    
+    /* Forms */
+    label { 
+      display:block; 
+      font-size: 12px; 
+      opacity:.9; 
+      margin-bottom: 6px; 
+      font-weight: 500;
+    }
+    input, select, textarea, button { 
+      width: 100%; 
+      border-radius: 10px; 
+      border: 1px solid #2a2a55; 
+      background:#0f0f20; 
+      color:#f2f2f7; 
+      padding: 10px; 
+      font-size: 14px; 
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    button { cursor:pointer; transition: all 0.2s; }
+    button:hover { opacity: 0.9; }
+    
+    /* Button variants */
+    .btn-primary { background: var(--primary-bg); border-color: var(--primary); }
+    .btn-success { background: var(--success-bg); border-color: var(--success); }
+    .btn-warning { background: var(--warning-bg); border-color: var(--warning); }
+    .btn-danger { background: var(--danger-bg); border-color: var(--danger); }
+    .btn-small { padding: 6px 12px; font-size: 12px; width: auto; }
+    
+    /* Grids */
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    @media (max-width: 768px) { 
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+    
+    /* Tables */
+    table { width:100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { 
+      border-bottom: 1px solid #24244a; 
+      padding: 10px 8px; 
+      text-align:left; 
+      font-size: 13px; 
+    }
+    th { 
+      font-size: 12px; 
+      opacity:.9; 
+      font-weight: 600;
+      background: #0f0f1a;
+    }
+    tr:hover { background: rgba(255,255,255,0.02); }
+    
+    /* Pills & badges */
+    .pill { 
+      display:inline-block; 
+      padding: 3px 10px; 
+      border:1px solid #2a2a55; 
+      border-radius: 999px; 
+      font-size: 11px; 
+      margin: 2px;
+      background: #0f0f20;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-success { background: var(--success-bg); color: #4ade80; }
+    .badge-warning { background: var(--warning-bg); color: #fb923c; }
+    .badge-danger { background: var(--danger-bg); color: #f87171; }
+    
+    /* Utilities */
+    .sep { height:1px; background:#232344; margin: 12px 0; }
+    .text-muted { opacity: 0.7; font-size: 13px; }
+    .text-small { font-size: 12px; }
+    .mono { font-family: ui-monospace, monospace; }
+    .flex { display: flex; gap: 8px; align-items: center; }
+    .flex-wrap { flex-wrap: wrap; }
+    .mb-2 { margin-bottom: 8px; }
+    .mt-2 { margin-top: 8px; }
+    
+    /* Cliente card en sesión */
+    .client-card {
+      background: linear-gradient(135deg, #1a1a3a 0%, #0f0f20 100%);
+      border: 1px solid var(--primary);
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .client-name { 
+      font-size: 16px; 
+      font-weight: 600; 
+      margin-bottom: 4px; 
+    }
+    .client-meta { 
+      font-size: 12px; 
+      opacity: 0.8; 
+    }
+    
+    /* Ejercicios en rutina */
+    .exercise-item {
+      background: #0f0f20;
+      border: 1px solid #2a2a55;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .exercise-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 6px;
+    }
+    .exercise-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .exercise-details {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+    
+    /* Status toast */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1a1a3a;
+      border: 1px solid #3a3aa0;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+      z-index: 1000;
+      max-width: 300px;
+    }
+    #toast.show { display: block; }
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: #121225;
+      border: 1px solid #232344;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #232344;
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .close-modal {
+      background: none;
+      border: none;
+      color: #f2f2f7;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: auto;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>💪 Bitácora Pro</h1>
+  <div class="header-nav">
+    <button class="tab-btn active" data-tab="sesion">Sesión</button>
+    <button class="tab-btn" data-tab="clientes">Clientes</button>
+    <button class="tab-btn" data-tab="rutinas">Rutinas</button>
+    <button class="tab-btn" data-tab="historial">Historial</button>
+    <button class="tab-btn" data-tab="calendario">Agenda</button>
+  </div>
+</header>
+
+<main>
+  <!-- TAB: SESIÓN DE ENTRENAMIENTO -->
+  <div id="tab-sesion" class="tab-content active">
+    <div class="grid grid-2">
+      <!-- Selección de cliente y carga de rutina -->
+      <div class="card">
+        <h2>📋 Nueva Sesión</h2>
+        
+        <div class="grid grid-2">
+          <div>
+            <label>Cliente</label>
+            <select id="sessionClient">
+              <option value="">Seleccionar cliente...</option>
+            </select>
+          </div>
+          <div>
+            <label>Fecha</label>
+            <input type="date" id="sessionDate" />
+          </div>
+        </div>
+        
+        <div class="mt-2">
+          <button class="btn-primary" id="loadRoutineBtn">🔄 Cargar Rutina Programada</button>
+        </div>
+        
+        <div id="clientInfo" style="display:none; margin-top: 12px;">
+          <div class="client-card">
+            <div class="client-name" id="clientNameDisplay"></div>
+            <div class="client-meta">
+              <span id="clientGoal"></span> • 
+              <span id="clientFrequency"></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="sep"></div>
+        
+        <h2 style="font-size: 14px;">📊 Métricas del día</h2>
+        <div class="grid grid-3">
+          <div>
+            <label>Sensación (1-10)</label>
+            <input type="number" id="metricFeel" min="1" max="10" placeholder="7" />
+          </div>
+          <div>
+            <label>Energía (1-10)</label>
+            <input type="number" id="metricEnergy" min="1" max="10" placeholder="8" />
+          </div>
+          <div>
+            <label>Dolor (0-10)</label>
+            <input type="number" id="metricPain" min="0" max="10" placeholder="0" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Rutina cargada o manual -->
+      <div class="card">
+        <h2>🏋️ Ejercicios</h2>
+        
+        <div id="loadedRoutine" style="display:none;">
+          <div class="text-muted mb-2">
+            Rutina cargada: <strong id="routineName"></strong>
+          </div>
+          <div id="exercisesList"></div>
+        </div>
+        
+        <div id="manualExercise">
+          <div class="text-small text-muted mb-2">
+            💡 O agrega ejercicios manualmente:
+          </div>
+          
+          <div class="grid grid-2 mb-2">
+            <div>
+              <label>Ejercicio</label>
+              <input type="text" id="exName" placeholder="Ej. Press banca" />
+            </div>
+            <div>
+              <label>Músculos</label>
+              <input type="text" id="exMuscles" placeholder="Ej. Pecho, tríceps" />
+            </div>
+          </div>
+          
+          <div class="grid grid-4 mb-2">
+            <div>
+              <label>Series</label>
+              <input type="number" id="exSets" placeholder="4" />
+            </div>
+            <div>
+              <label>Reps</label>
+              <input type="text" id="exReps" placeholder="8-10" />
+            </div>
+            <div>
+              <label>Peso (kg)</label>
+              <input type="number" id="exWeight" step="0.5" placeholder="60" />
+            </div>
+            <div>
+              <label>RPE</label>
+              <input type="number" id="exRPE" min="1" max="10" placeholder="8" />
+            </div>
+          </div>
+          
+          <div class="grid grid-3 mb-2">
+            <div>
+              <label>¿Completó?</label>
+              <select id="exDone">
+                <option value="si">Sí</option>
+                <option value="parcial">Parcial</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div>
+              <label>Descanso (seg)</label>
+              <input type="number" id="exRest" step="5" placeholder="90" />
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button class="btn-primary" id="addExBtn">+ Agregar</button>
+            </div>
+          </div>
+          
+          <div>
+            <label>Notas del ejercicio</label>
+            <textarea id="exNotes" placeholder="Técnica, correcciones, cues..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Ejercicios agregados (draft) -->
+    <div class="card">
+      <h2>📝 Ejercicios de esta sesión</h2>
+      <div id="draftExercises">
+        <div class="text-muted text-small">No hay ejercicios agregados todavía</div>
+      </div>
+    </div>
+    
+    <!-- Notas finales y guardar -->
+    <div class="card">
+      <h2>💬 Notas de la sesión</h2>
+      <textarea id="sessionNotes" placeholder="Observaciones generales, qué salió bien, qué ajustar..."></textarea>
+      
+      <div class="flex flex-wrap mt-2">
+        <button class="btn-success" id="saveSessionBtn">💾 Guardar Sesión</button>
+        <button class="btn-warning" id="clearDraftBtn">🗑️ Limpiar</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- TAB: CLIENTES -->
+  <div id="tab-clientes" class="tab-content">
+    <div class="card">
+      <h2>👥 Gestión de Clientes</h2>
+      
+      <div class="grid grid-2">
+        <div>
+          <label>Nombre completo</label>
+          <input type="text" id="clientName" placeholder="Ej. Juan Pérez" />
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" id="clientEmail" placeholder="juan@email.com" />
+        </div>
+      </div>
+      
+      <div class="grid grid-3 mt-2">
+        <div>
+          <label>Teléfono</label>
+          <input type="tel" id="clientPhone" placeholder="5512345678" />
+        </div>
+        <div>
+          <label>Edad</label>
+          <input type="number" id="clientAge" placeholder="30" />
+        </div>
+        <div>
+          <label>Sexo</label>
+          <select id="clientGender">
+            <option value="">Seleccionar...</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="O">Otro</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="grid grid-2 mt-2">
+        <div>
+          <label>Objetivo</label>
+          <select id="clientGoal">
+            <option value="">Seleccionar...</option>
+            <option value="Pérdida de grasa">Pérdida de grasa</option>
+            <option value="Ganancia muscular">Ganancia muscular</option>
+            <option value="Rendimiento deportivo">Rendimiento deportivo</option>
+            <option value="Salud general">Salud general</option>
+            <option value="Rehabilitación">Rehabilitación</option>
+          </select>
+        </div>
+        <div>
+          <label>Frecuencia semanal</label>
+          <input type="text" id="clientFrequency" placeholder="Ej. 3x semana - Lun, Mié, Vie" />
+        </div>
+      </div>
+      
+      <div class="mt-2">
+        <label>Notas / Observaciones</label>
+        <textarea id="clientNotes" placeholder="Lesiones previas, limitaciones, preferencias..."></textarea>
+      </div>
+      
+      <div class="flex flex-wrap mt-2">
+        <button class="btn-success" id="saveClientBtn">💾 Guardar Cliente</button>
+        <button class="btn-warning" id="clearClientBtn">🗑️ Limpiar</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>📋 Lista de Clientes</h2>
+      <div style="overflow-x: auto;">
+        <table id="clientsTable">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Objetivo</th>
+              <th>Frecuencia</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- TAB: RUTINAS -->
+  <div id="tab-rutinas" class="tab-content">
+    <div class="card">
+      <h2>📚 Crear / Editar Rutina</h2>
+      
+      <div class="grid grid-2">
+        <div>
+          <label>Nombre de la rutina</label>
+          <input type="text" id="routineName" placeholder="Ej. Torso A - Empuje" />
+        </div>
+        <div>
+          <label>Asignar a cliente</label>
+          <select id="routineClient">
+            <option value="">Plantilla general...</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="grid grid-2 mt-2">
+        <div>
+          <label>Tipo</label>
+          <select id="routineType">
+            <option value="Fuerza">Fuerza</option>
+            <option value="Hipertrofia">Hipertrofia</option>
+            <option value="Funcional">Funcional</option>
+            <option value="Cardio">Cardio</option>
+            <option value="Mixto">Mixto</option>
+          </select>
+        </div>
+        <div>
+          <label>Día de la semana</label>
+          <select id="routineDay">
+            <option value="">Cualquier día</option>
+            <option value="Lunes">Lunes</option>
+            <option value="Martes">Martes</option>
+            <option value="Miércoles">Miércoles</option>
+            <option value="Jueves">Jueves</option>
+            <option value="Viernes">Viernes</option>
+            <option value="Sábado">Sábado</option>
+            <option value="Domingo">Domingo</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="mt-2">
+        <label>Descripción</label>
+        <textarea id="routineDescription" placeholder="Descripción general de la rutina..."></textarea>
+      </div>
+      
+      <div class="sep"></div>
+      
+      <h2 style="font-size: 14px;">Ejercicios de la rutina</h2>
+      
+      <div class="grid grid-2 mb-2">
+        <div>
+          <label>Ejercicio</label>
+          <input type="text" id="routineExName" placeholder="Ej. Sentadilla búlgara" />
+        </div>
+        <div>
+          <label>Músculos trabajados</label>
+          <input type="text" id="routineExMuscles" placeholder="Ej. Cuádriceps, glúteo" />
+        </div>
+      </div>
+      
+      <div class="grid grid-4 mb-2">
+        <div>
+          <label>Series</label>
+          <input type="number" id="routineExSets" placeholder="3" />
+        </div>
+        <div>
+          <label>Reps objetivo</label>
+          <input type="text" id="routineExReps" placeholder="10-12" />
+        </div>
+        <div>
+          <label>Descanso (seg)</label>
+          <input type="number" id="routineExRest" placeholder="60" />
+        </div>
+        <div>
+          <label>RPE objetivo</label>
+          <input type="number" id="routineExRPE" min="1" max="10" placeholder="7" />
+        </div>
+      </div>
+      
+      <div class="mb-2">
+        <label>Instrucciones / Cues técnicos</label>
+        <textarea id="routineExInstructions" placeholder="Cues de técnica, setup, puntos clave..."></textarea>
+      </div>
+      
+      <button class="btn-primary mb-2" id="addRoutineExBtn">+ Agregar ejercicio a rutina</button>
+      
+      <div id="routineExercisesList"></div>
+      
+      <div class="sep"></div>
+      
+      <div class="flex flex-wrap">
+        <button class="btn-success" id="saveRoutineBtn">💾 Guardar Rutina</button>
+        <button class="btn-warning" id="clearRoutineBtn">🗑️ Limpiar</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>📚 Rutinas Guardadas</h2>
+      <div style="overflow-x: auto;">
+        <table id="routinesTable">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cliente</th>
+              <th>Tipo</th>
+              <th>Día</th>
+              <th>Ejercicios</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- TAB: HISTORIAL -->
+  <div id="tab-historial" class="tab-content">
+    <div class="card">
+      <h2>🔍 Buscar Sesiones</h2>
+      
+      <div class="grid grid-3">
+        <div>
+          <label>Cliente</label>
+          <select id="searchClient">
+            <option value="">Todos los clientes</option>
+          </select>
+        </div>
+        <div>
+          <label>Desde</label>
+          <input type="date" id="searchDateFrom" />
+        </div>
+        <div>
+          <label>Hasta</label>
+          <input type="date" id="searchDateTo" />
+        </div>
+      </div>
+      
+      <div class="mt-2">
+        <label>Buscar texto</label>
+        <input type="text" id="searchText" placeholder="Buscar en ejercicios, notas..." />
+      </div>
+      
+      <div class="flex flex-wrap mt-2">
+        <button class="btn-primary" id="searchSessionsBtn">🔍 Buscar</button>
+        <button class="btn-warning" id="exportHistoryBtn">📥 Exportar JSON</button>
+        <button class="btn-warning" id="importHistoryBtn">📤 Importar JSON</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none;" />
+    </div>
+    
+    <div class="card">
+      <h2>📊 Historial de Sesiones</h2>
+      <div style="overflow-x: auto;">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Fecha</th>
+              <th>Ejercicios</th>
+              <th>Sensación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- TAB: CALENDARIO/AGENDA -->
+  <div id="tab-calendario" class="tab-content">
+    <div class="card">
+      <h2>📅 Agenda Semanal</h2>
+      <div class="grid grid-2 mb-2">
+        <div>
+          <label>Semana</label>
+          <input type="week" id="agendaWeek" />
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button class="btn-primary" id="loadAgendaBtn">🔄 Cargar Agenda</button>
+        </div>
+      </div>
+      
+      <div id="agendaView"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Toast notifications -->
+<div id="toast"></div>
+
+<!-- Modal para ver detalles de sesión -->
+<div id="sessionModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Detalles de Sesión</h3>
+      <button class="close-modal" onclick="closeModal('sessionModal')">×</button>
+    </div>
+    <div id="sessionModalContent"></div>
+  </div>
+</div>
+
+<script>
+// ==================== STORAGE ====================
+const STORAGE_KEY = 'bitacora_pro_v1';
+
+function getDB() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  return data ? JSON.parse(data) : {
+    clients: [],
+    routines: [],
+    sessions: []
+  };
+}
+
+function setDB(db) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+}
+
+// ==================== UTILITIES ====================
+function $(id) { return document.getElementById(id); }
+
+function toast(msg, duration = 3000) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function normalize(str) {
+  return String(str || '').trim();
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function closeModal(id) {
+  $(id).classList.remove('show');
+}
+
+// ==================== TAB NAVIGATION ====================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    
+    // Update active button
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Update active content
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    $(`tab-${tab}`).classList.add('active');
+    
+    // Load tab-specific data
+    if (tab === 'clientes') renderClients();
+    if (tab === 'rutinas') renderRoutines();
+    if (tab === 'historial') renderHistory();
+  });
+});
+
+// ==================== CLIENTES ====================
+let currentClientId = null;
+
+function saveClient() {
+  const name = normalize($('clientName').value);
+  if (!name) return toast('⚠️ El nombre es obligatorio');
+  
+  const db = getDB();
+  
+  const client = {
+    id: currentClientId || generateId(),
+    name,
+    email: normalize($('clientEmail').value),
+    phone: normalize($('clientPhone').value),
+    age: $('clientAge').value ? Number($('clientAge').value) : null,
+    gender: $('clientGender').value,
+    goal: $('clientGoal').value,
+    frequency: normalize($('clientFrequency').value),
+    notes: normalize($('clientNotes').value),
+    createdAt: currentClientId ? 
+      db.clients.find(c => c.id === currentClientId)?.createdAt : 
+      new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  if (currentClientId) {
+    const idx = db.clients.findIndex(c => c.id === currentClientId);
+    db.clients[idx] = client;
+  } else {
+    db.clients.push(client);
+  }
+  
+  setDB(db);
+  clearClientForm();
+  renderClients();
+  updateClientSelects();
+  toast('✅ Cliente guardado');
+}
+
+function clearClientForm() {
+  currentClientId = null;
+  $('clientName').value = '';
+  $('clientEmail').value = '';
+  $('clientPhone').value = '';
+  $('clientAge').value = '';
+  $('clientGender').value = '';
+  $('clientGoal').value = '';
+  $('clientFrequency').value = '';
+  $('clientNotes').value = '';
+}
+
+function editClient(id) {
+  const db = getDB();
+  const client = db.clients.find(c => c.id === id);
+  if (!client) return;
+  
+  currentClientId = id;
+  $('clientName').value = client.name || '';
+  $('clientEmail').value = client.email || '';
+  $('clientPhone').value = client.phone || '';
+  $('clientAge').value = client.age || '';
+  $('clientGender').value = client.gender || '';
+  $('clientGoal').value = client.goal || '';
+  $('clientFrequency').value = client.frequency || '';
+  $('clientNotes').value = client.notes || '';
+  
+  toast('📝 Editando cliente');
+}
+
+function deleteClient(id) {
+  if (!confirm('¿Eliminar este cliente? También se borrarán sus rutinas y sesiones.')) return;
+  
+  const db = getDB();
+  db.clients = db.clients.filter(c => c.id !== id);
+  db.routines = db.routines.filter(r => r.clientId !== id);
+  db.sessions = db.sessions.filter(s => s.clientId !== id);
+  
+  setDB(db);
+  renderClients();
+  updateClientSelects();
+  toast('🗑️ Cliente eliminado');
+}
+
+function renderClients() {
+  const db = getDB();
+  const tbody = $('clientsTable').querySelector('tbody');
+  
+  if (db.clients.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-small">No hay clientes registrados</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = db.clients.map(c => `
+    <tr>
+      <td><strong>${escapeHtml(c.name)}</strong></td>
+      <td>${escapeHtml(c.goal || '-')}</td>
+      <td><span class="pill">${escapeHtml(c.frequency || '-')}</span></td>
+      <td class="text-small">${escapeHtml(c.email || '-')}</td>
+      <td class="text-small">${escapeHtml(c.phone || '-')}</td>
+      <td>
+        <button class="btn-small btn-primary" onclick="editClient('${c.id}')">✏️</button>
+        <button class="btn-small btn-danger" onclick="deleteClient('${c.id}')">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function updateClientSelects() {
+  const db = getDB();
+  const clients = db.clients.sort((a, b) => a.name.localeCompare(b.name));
+  
+  const selects = [
+    $('sessionClient'),
+    $('routineClient'),
+    $('searchClient')
+  ];
+  
+  selects.forEach((select, idx) => {
+    const currentValue = select.value;
+    const placeholder = idx === 2 ? '<option value="">Todos los clientes</option>' :
+                       idx === 1 ? '<option value="">Plantilla general...</option>' :
+                       '<option value="">Seleccionar cliente...</option>';
+    
+    select.innerHTML = placeholder + clients.map(c => 
+      `<option value="${c.id}">${escapeHtml(c.name)}</option>`
+    ).join('');
+    
+    select.value = currentValue;
+  });
+}
+
+$('saveClientBtn').addEventListener('click', saveClient);
+$('clearClientBtn').addEventListener('click', clearClientForm);
+
+// ==================== RUTINAS ====================
+let currentRoutineId = null;
+let routineExercises = [];
+
+function addRoutineExercise() {
+  const name = normalize($('routineExName').value);
+  if (!name) return toast('⚠️ Escribe el nombre del ejercicio');
+  
+  routineExercises.push({
+    id: generateId(),
+    name,
+    muscles: normalize($('routineExMuscles').value),
+    sets: $('routineExSets').value ? Number($('routineExSets').value) : null,
+    reps: normalize($('routineExReps').value),
+    rest: $('routineExRest').value ? Number($('routineExRest').value) : null,
+    rpe: $('routineExRPE').value ? Number($('routineExRPE').value) : null,
+    instructions: normalize($('routineExInstructions').value)
+  });
+  
+  // Clear exercise fields
+  $('routineExName').value = '';
+  $('routineExMuscles').value = '';
+  $('routineExSets').value = '';
+  $('routineExReps').value = '';
+  $('routineExRest').value = '';
+  $('routineExRPE').value = '';
+  $('routineExInstructions').value = '';
+  
+  renderRoutineExercises();
+  toast('✅ Ejercicio agregado');
+}
+
+function removeRoutineExercise(id) {
+  routineExercises = routineExercises.filter(e => e.id !== id);
+  renderRoutineExercises();
+}
+
+function renderRoutineExercises() {
+  const container = $('routineExercisesList');
+  
+  if (routineExercises.length === 0) {
+    container.innerHTML = '<div class="text-muted text-small">No hay ejercicios en esta rutina</div>';
+    return;
+  }
+  
+  container.innerHTML = routineExercises.map((ex, idx) => `
+    <div class="exercise-item">
+      <div class="exercise-header">
+        <div>
+          <div class="exercise-name">${idx + 1}. ${escapeHtml(ex.name)}</div>
+          <div class="exercise-details">
+            ${ex.muscles ? `🎯 ${escapeHtml(ex.muscles)}` : ''}
+            ${ex.sets ? ` • ${ex.sets} series` : ''}
+            ${ex.reps ? ` • ${escapeHtml(ex.reps)} reps` : ''}
+            ${ex.rest ? ` • ${ex.rest}seg descanso` : ''}
+            ${ex.rpe ? ` • RPE ${ex.rpe}` : ''}
+          </div>
+          ${ex.instructions ? `<div class="text-small text-muted mt-2">💡 ${escapeHtml(ex.instructions)}</div>` : ''}
+        </div>
+        <button class="btn-small btn-danger" onclick="removeRoutineExercise('${ex.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function saveRoutine() {
+  const name = normalize($('routineName').value);
+  if (!name) return toast('⚠️ El nombre de la rutina es obligatorio');
+  if (routineExercises.length === 0) return toast('⚠️ Agrega al menos un ejercicio');
+  
+  const db = getDB();
+  
+  const routine = {
+    id: currentRoutineId || generateId(),
+    name,
+    clientId: $('routineClient').value || null,
+    type: $('routineType').value,
+    day: $('routineDay').value || null,
+    description: normalize($('routineDescription').value),
+    exercises: [...routineExercises],
+    createdAt: currentRoutineId ?
+      db.routines.find(r => r.id === currentRoutineId)?.createdAt :
+      new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  if (currentRoutineId) {
+    const idx = db.routines.findIndex(r => r.id === currentRoutineId);
+    db.routines[idx] = routine;
+  } else {
+    db.routines.push(routine);
+  }
+  
+  setDB(db);
+  clearRoutineForm();
+  renderRoutines();
+  toast('✅ Rutina guardada');
+}
+
+function clearRoutineForm() {
+  currentRoutineId = null;
+  $('routineName').value = '';
+  $('routineClient').value = '';
+  $('routineType').value = 'Fuerza';
+  $('routineDay').value = '';
+  $('routineDescription').value = '';
+  routineExercises = [];
+  renderRoutineExercises();
+}
+
+function editRoutine(id) {
+  const db = getDB();
+  const routine = db.routines.find(r => r.id === id);
+  if (!routine) return;
+  
+  currentRoutineId = id;
+  $('routineName').value = routine.name || '';
+  $('routineClient').value = routine.clientId || '';
+  $('routineType').value = routine.type || 'Fuerza';
+  $('routineDay').value = routine.day || '';
+  $('routineDescription').value = routine.description || '';
+  routineExercises = [...(routine.exercises || [])];
+  
+  renderRoutineExercises();
+  
+  // Switch to rutinas tab
+  document.querySelector('[data-tab="rutinas"]').click();
+  toast('📝 Editando rutina');
+}
+
+function deleteRoutine(id) {
+  if (!confirm('¿Eliminar esta rutina?')) return;
+  
+  const db = getDB();
+  db.routines = db.routines.filter(r => r.id !== id);
+  
+  setDB(db);
+  renderRoutines();
+  toast('🗑️ Rutina eliminada');
+}
+
+function renderRoutines() {
+  const db = getDB();
+  const tbody = $('routinesTable').querySelector('tbody');
+  
+  if (db.routines.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-small">No hay rutinas guardadas</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = db.routines.map(r => {
+    const client = r.clientId ? db.clients.find(c => c.id === r.clientId) : null;
+    const clientName = client ? client.name : 'Plantilla';
+    
+    return `
+      <tr>
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        <td>${escapeHtml(clientName)}</td>
+        <td><span class="pill">${escapeHtml(r.type)}</span></td>
+        <td>${escapeHtml(r.day || '-')}</td>
+        <td>${r.exercises.length} ejercicios</td>
+        <td>
+          <button class="btn-small btn-primary" onclick="editRoutine('${r.id}')">✏️</button>
+          <button class="btn-small btn-danger" onclick="deleteRoutine('${r.id}')">🗑️</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+$('addRoutineExBtn').addEventListener('click', addRoutineExercise);
+$('saveRoutineBtn').addEventListener('click', saveRoutine);
+$('clearRoutineBtn').addEventListener('click', clearRoutineForm);
+
+// ==================== SESIÓN ====================
+let sessionDraftExercises = [];
+
+$('sessionClient').addEventListener('change', () => {
+  const clientId = $('sessionClient').value;
+  if (!clientId) {
+    $('clientInfo').style.display = 'none';
+    return;
+  }
+  
+  const db = getDB();
+  const client = db.clients.find(c => c.id === clientId);
+  if (!client) return;
+  
+  $('clientInfo').style.display = 'block';
+  $('clientNameDisplay').textContent = client.name;
+  $('clientGoal').textContent = client.goal || 'Sin objetivo definido';
+  $('clientFrequency').textContent = client.frequency || 'Sin frecuencia definida';
+});
+
+function loadRoutineForSession() {
+  const clientId = $('sessionClient').value;
+  const date = $('sessionDate').value;
+  
+  if (!clientId) return toast('⚠️ Selecciona un cliente');
+  if (!date) return toast('⚠️ Selecciona una fecha');
+  
+  const db = getDB();
+  const dayOfWeek = new Date(date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
+  const dayCapitalized = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+  
+  // Find routine for this client and day
+  let routine = db.routines.find(r => 
+    r.clientId === clientId && 
+    r.day === dayCapitalized
+  );
+  
+  // If not found, try any routine for this client
+  if (!routine) {
+    routine = db.routines.find(r => r.clientId === clientId);
+  }
+  
+  if (!routine) {
+    return toast('⚠️ No hay rutina programada para este cliente');
+  }
+  
+  // Load routine exercises into session
+  sessionDraftExercises = routine.exercises.map(ex => ({
+    ...ex,
+    weight: null,
+    done: 'si',
+    notes: ex.instructions || ''
+  }));
+  
+  $('loadedRoutine').style.display = 'block';
+  $('routineName').textContent = routine.name;
+  
+  renderSessionDraft();
+  toast(`✅ Rutina "${routine.name}" cargada`);
+}
+
+function addManualExercise() {
+  const name = normalize($('exName').value);
+  if (!name) return toast('⚠️ Escribe el nombre del ejercicio');
+  
+  sessionDraftExercises.push({
+    id: generateId(),
+    name,
+    muscles: normalize($('exMuscles').value),
+    sets: $('exSets').value ? Number($('exSets').value) : null,
+    reps: normalize($('exReps').value),
+    weight: $('exWeight').value ? Number($('exWeight').value) : null,
+    rpe: $('exRPE').value ? Number($('exRPE').value) : null,
+    done: $('exDone').value,
+    rest: $('exRest').value ? Number($('exRest').value) : null,
+    notes: normalize($('exNotes').value)
+  });
+  
+  // Clear fields
+  $('exName').value = '';
+  $('exMuscles').value = '';
+  $('exSets').value = '';
+  $('exReps').value = '';
+  $('exWeight').value = '';
+  $('exRPE').value = '';
+  $('exRest').value = '';
+  $('exNotes').value = '';
+  $('exDone').value = 'si';
+  
+  renderSessionDraft();
+  toast('✅ Ejercicio agregado');
+}
+
+function removeSessionExercise(id) {
+  sessionDraftExercises = sessionDraftExercises.filter(e => e.id !== id);
+  renderSessionDraft();
+}
+
+function renderSessionDraft() {
+  const container = $('draftExercises');
+  
+  if (sessionDraftExercises.length === 0) {
+    container.innerHTML = '<div class="text-muted text-small">No hay ejercicios agregados todavía</div>';
+    return;
+  }
+  
+  container.innerHTML = sessionDraftExercises.map((ex, idx) => {
+    const doneClass = ex.done === 'si' ? 'badge-success' : 
+                     ex.done === 'parcial' ? 'badge-warning' : 
+                     'badge-danger';
+    
+    return `
+      <div class="exercise-item">
+        <div class="exercise-header">
+          <div>
+            <div class="exercise-name">
+              ${idx + 1}. ${escapeHtml(ex.name)}
+              <span class="badge ${doneClass}">${escapeHtml(ex.done)}</span>
+            </div>
+            <div class="exercise-details">
+              ${ex.muscles ? `🎯 ${escapeHtml(ex.muscles)}` : ''}
+              ${ex.sets ? ` • ${ex.sets}x` : ''}${ex.reps ? `${escapeHtml(ex.reps)}` : ''}
+              ${ex.weight ? ` @ ${ex.weight}kg` : ''}
+              ${ex.rpe ? ` • RPE ${ex.rpe}` : ''}
+              ${ex.rest ? ` • ${ex.rest}seg` : ''}
+            </div>
+            ${ex.notes ? `<div class="text-small text-muted mt-2">💡 ${escapeHtml(ex.notes)}</div>` : ''}
+          </div>
+          <button class="btn-small btn-danger" onclick="removeSessionExercise('${ex.id}')">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function saveSession() {
+  const clientId = $('sessionClient').value;
+  const date = $('sessionDate').value;
+  
+  if (!clientId) return toast('⚠️ Selecciona un cliente');
+  if (!date) return toast('⚠️ Selecciona una fecha');
+  if (sessionDraftExercises.length === 0) return toast('⚠️ Agrega al menos un ejercicio');
+  
+  const db = getDB();
+  
+  const session = {
+    id: generateId(),
+    clientId,
+    date,
+    metrics: {
+      feel: $('metricFeel').value ? Number($('metricFeel').value) : null,
+      energy: $('metricEnergy').value ? Number($('metricEnergy').value) : null,
+      pain: $('metricPain').value ? Number($('metricPain').value) : null
+    },
+    exercises: [...sessionDraftExercises],
+    notes: normalize($('sessionNotes').value),
+    createdAt: new Date().toISOString()
+  };
+  
+  // Remove any existing session for same client and date
+  db.sessions = db.sessions.filter(s => !(s.clientId === clientId && s.date === date));
+  db.sessions.push(session);
+  
+  setDB(db);
+  clearSessionForm();
+  toast('✅ Sesión guardada');
+}
+
+function clearSessionForm() {
+  $('sessionClient').value = '';
+  $('sessionDate').value = '';
+  $('clientInfo').style.display = 'none';
+  $('loadedRoutine').style.display = 'none';
+  $('metricFeel').value = '';
+  $('metricEnergy').value = '';
+  $('metricPain').value = '';
+  $('sessionNotes').value = '';
+  sessionDraftExercises = [];
+  renderSessionDraft();
+}
+
+$('loadRoutineBtn').addEventListener('click', loadRoutineForSession);
+$('addExBtn').addEventListener('click', addManualExercise);
+$('saveSessionBtn').addEventListener('click', saveSession);
+$('clearDraftBtn').addEventListener('click', () => {
+  if (confirm('¿Limpiar todos los ejercicios?')) {
+    sessionDraftExercises = [];
+    renderSessionDraft();
+  }
+});
+
+// ==================== HISTORIAL ====================
+function renderHistory() {
+  const db = getDB();
+  const tbody = $('historyTable').querySelector('tbody');
+  
+  const clientFilter = $('searchClient').value;
+  const dateFrom = $('searchDateFrom').value;
+  const dateTo = $('searchDateTo').value;
+  const textFilter = normalize($('searchText').value).toLowerCase();
+  
+  let sessions = db.sessions.slice().sort((a, b) => b.date.localeCompare(a.date));
+  
+  // Apply filters
+  if (clientFilter) {
+    sessions = sessions.filter(s => s.clientId === clientFilter);
+  }
+  
+  if (dateFrom) {
+    sessions = sessions.filter(s => s.date >= dateFrom);
+  }
+  
+  if (dateTo) {
+    sessions = sessions.filter(s => s.date <= dateTo);
+  }
+  
+  if (textFilter) {
+    sessions = sessions.filter(s => {
+      const blob = JSON.stringify(s).toLowerCase();
+      return blob.includes(textFilter);
+    });
+  }
+  
+  if (sessions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-small">No se encontraron sesiones</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = sessions.map(s => {
+    const client = db.clients.find(c => c.id === s.clientId);
+    const clientName = client ? client.name : 'Cliente desconocido';
+    
+    return `
+      <tr>
+        <td><strong>${escapeHtml(clientName)}</strong></td>
+        <td class="mono">${s.date}</td>
+        <td>${s.exercises.length} ejercicios</td>
+        <td>${s.metrics?.feel ? `${s.metrics.feel}/10` : '-'}</td>
+        <td>
+          <button class="btn-small btn-primary" onclick="viewSession('${s.id}')">👁️ Ver</button>
+          <button class="btn-small btn-danger" onclick="deleteSession('${s.id}')">🗑️</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function viewSession(id) {
+  const db = getDB();
+  const session = db.sessions.find(s => s.id === id);
+  if (!session) return;
+  
+  const client = db.clients.find(c => c.id === session.clientId);
+  const clientName = client ? client.name : 'Cliente desconocido';
+  
+  let html = `
+    <div class="client-card">
+      <div class="client-name">${escapeHtml(clientName)}</div>
+      <div class="client-meta">${session.date}</div>
+    </div>
+    
+    <h4 style="font-size: 14px; margin: 12px 0 8px;">📊 Métricas</h4>
+    <div class="grid grid-3 mb-2">
+      <div class="text-small">Sensación: ${session.metrics?.feel || '-'}/10</div>
+      <div class="text-small">Energía: ${session.metrics?.energy || '-'}/10</div>
+      <div class="text-small">Dolor: ${session.metrics?.pain || '-'}/10</div>
+    </div>
+    
+    <h4 style="font-size: 14px; margin: 12px 0 8px;">🏋️ Ejercicios (${session.exercises.length})</h4>
+  `;
+  
+  session.exercises.forEach((ex, idx) => {
+    const doneClass = ex.done === 'si' ? 'badge-success' : 
+                     ex.done === 'parcial' ? 'badge-warning' : 
+                     'badge-danger';
+    
+    html += `
+      <div class="exercise-item">
+        <div class="exercise-name">
+          ${idx + 1}. ${escapeHtml(ex.name)}
+          <span class="badge ${doneClass}">${escapeHtml(ex.done)}</span>
+        </div>
+        <div class="exercise-details">
+          ${ex.muscles ? `🎯 ${escapeHtml(ex.muscles)}` : ''}
+          ${ex.sets ? ` • ${ex.sets}x` : ''}${ex.reps ? `${escapeHtml(ex.reps)}` : ''}
+          ${ex.weight ? ` @ ${ex.weight}kg` : ''}
+          ${ex.rpe ? ` • RPE ${ex.rpe}` : ''}
+        </div>
+        ${ex.notes ? `<div class="text-small text-muted mt-2">💡 ${escapeHtml(ex.notes)}</div>` : ''}
+      </div>
+    `;
+  });
+  
+  if (session.notes) {
+    html += `
+      <h4 style="font-size: 14px; margin: 12px 0 8px;">💬 Notas de la sesión</h4>
+      <div class="text-small">${escapeHtml(session.notes)}</div>
+    `;
+  }
+  
+  $('sessionModalContent').innerHTML = html;
+  $('sessionModal').classList.add('show');
+}
+
+function deleteSession(id) {
+  if (!confirm('¿Eliminar esta sesión?')) return;
+  
+  const db = getDB();
+  db.sessions = db.sessions.filter(s => s.id !== id);
+  
+  setDB(db);
+  renderHistory();
+  toast('🗑️ Sesión eliminada');
+}
+
+$('searchSessionsBtn').addEventListener('click', renderHistory);
+
+// Export/Import
+$('exportHistoryBtn').addEventListener('click', () => {
+  const db = getDB();
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bitacora_export_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Datos exportados');
+});
+
+$('importHistoryBtn').addEventListener('click', () => $('importFile').click());
+
+$('importFile').addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    
+    if (!data.clients || !data.routines || !data.sessions) {
+      throw new Error('Formato inválido');
+    }
+    
+    if (confirm('¿Reemplazar todos los datos actuales con el archivo importado?')) {
+      setDB(data);
+      updateClientSelects();
+      renderClients();
+      renderRoutines();
+      renderHistory();
+      toast('✅ Datos importados');
+    }
+  } catch (err) {
+    toast('❌ Error: ' + err.message);
+  } finally {
+    e.target.value = '';
+  }
+});
+
+// ==================== AGENDA ====================
+function loadAgenda() {
+  const week = $('agendaWeek').value;
+  if (!week) return toast('⚠️ Selecciona una semana');
+  
+  const [year, weekNum] = week.split('-W');
+  const firstDay = getDateOfISOWeek(parseInt(weekNum), parseInt(year));
+  
+  const db = getDB();
+  const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  
+  let html = '<div class="grid">';
+  
+  days.forEach((day, idx) => {
+    const date = new Date(firstDay);
+    date.setDate(date.getDate() + idx);
+    const dateStr = date.toISOString().slice(0, 10);
+    
+    // Get sessions for this day
+    const daySessions = db.sessions.filter(s => s.date === dateStr);
+    
+    // Get routines scheduled for this day
+    const dayRoutines = db.routines.filter(r => r.day === day && r.clientId);
+    
+    html += `
+      <div class="card">
+        <h3 style="font-size: 14px; margin: 0 0 8px;">${day} ${dateStr}</h3>
+    `;
+    
+    if (dayRoutines.length > 0) {
+      html += '<div class="text-small text-muted mb-2">Programado:</div>';
+      dayRoutines.forEach(r => {
+        const client = db.clients.find(c => c.id === r.clientId);
+        const clientName = client ? client.name : 'Cliente desconocido';
+        const hasSession = daySessions.some(s => s.clientId === r.clientId);
+        
+        html += `
+          <div class="pill ${hasSession ? 'badge-success' : ''}">
+            ${escapeHtml(clientName)} - ${escapeHtml(r.name)}
+            ${hasSession ? ' ✅' : ''}
+          </div>
+        `;
+      });
+    }
+    
+    if (daySessions.length > 0) {
+      html += '<div class="text-small text-muted mt-2 mb-2">Completadas:</div>';
+      daySessions.forEach(s => {
+        const client = db.clients.find(c => c.id === s.clientId);
+        const clientName = client ? client.name : 'Cliente desconocido';
+        html += `<div class="pill badge-success">${escapeHtml(clientName)} ✅</div>`;
+      });
+    }
+    
+    if (dayRoutines.length === 0 && daySessions.length === 0) {
+      html += '<div class="text-muted text-small">Sin actividad</div>';
+    }
+    
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  
+  $('agendaView').innerHTML = html;
+}
+
+function getDateOfISOWeek(week, year) {
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  const dow = simple.getDay();
+  const ISOweekStart = simple;
+  if (dow <= 4) {
+    ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+  } else {
+    ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+  }
+  return ISOweekStart;
+}
+
+$('loadAgendaBtn').addEventListener('click', loadAgenda);
+
+// ==================== INITIALIZATION ====================
+function init() {
+  // Set today's date
+  $('sessionDate').value = new Date().toISOString().slice(0, 10);
+  
+  // Set current week
+  const now = new Date();
+  const weekNum = getWeekNumber(now);
+  $('agendaWeek').value = `${now.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+  
+  // Update selects
+  updateClientSelects();
+  
+  // Render initial data
+  renderClients();
+  renderRoutines();
+  renderHistory();
+}
+
+function getWeekNumber(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+// Start the app
+init();
+</script>
+</body>
+</html>
 
 
 
